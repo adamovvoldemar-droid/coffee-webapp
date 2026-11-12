@@ -1,41 +1,93 @@
 {
   "shop": "Кофе с собой",
   "currency": "₽",
-  "sizes": [
-    { "id": "s", "name": "250 мл", "extra": 0 },
-    { "id": "m", "name": "350 мл", "extra": 40 },
-    { "id": "l", "name": "450 мл", "extra": 80 }
+  "milks": [
+    { "id": "regular", "name": "Обычное", "price": 0 },
+    { "id": "oat", "name": "Овсяное", "price": 40 },
+    { "id": "coconut", "name": "Кокосовое", "price": 60 },
+    { "id": "almond", "name": "Миндальное", "price": 60 }
   ],
   "addons": [
-    { "id": "syrup", "name": "Сироп", "price": 40 },
-    { "id": "altmilk", "name": "Растительное молоко", "price": 70 },
-    { "id": "shot", "name": "Доп. шот эспрессо", "price": 60 }
+    { "id": "espresso", "name": "Эспрессо", "note": "30 мл", "price": 50 },
+    { "id": "syrup", "name": "Сироп", "note": "20 мл", "price": 30 },
+    { "id": "marshmallow", "name": "Маршмеллоу", "note": "50 г", "price": 30 },
+    { "id": "milk", "name": "Молоко 3,2%", "note": "50 мл", "price": 0 },
+    { "id": "cream", "name": "Сливки 10%", "note": "50 мл", "price": 30 },
+    { "id": "oat50", "name": "Овсяное молоко", "note": "50 мл", "price": 20 },
+    { "id": "coconut50", "name": "Кокосовое молоко", "note": "50 мл", "price": 30 },
+    { "id": "almond50", "name": "Миндальное молоко", "note": "50 мл", "price": 30 }
   ],
   "pickup": [0, 10, 15, 20, 30],
   "categories": [
     {
-      "name": "Кофе",
+      "name": "Классика",
       "items": [
-        { "id": "espresso", "name": "Эспрессо", "desc": "Классический шот, 40 мл", "price": 150, "sizes": false, "addons": false },
-        { "id": "americano", "name": "Американо", "desc": "Эспрессо и горячая вода", "price": 180, "sizes": true, "addons": true },
-        { "id": "cappuccino", "name": "Капучино", "desc": "Эспрессо, молоко, плотная пенка", "price": 220, "sizes": true, "addons": true },
-        { "id": "latte", "name": "Латте", "desc": "Мягкий, много молока", "price": 230, "sizes": true, "addons": true },
-        { "id": "flatwhite", "name": "Флэт уайт", "desc": "Двойной эспрессо и молоко", "price": 250, "sizes": false, "addons": true },
-        { "id": "raf", "name": "Раф", "desc": "Сливочный, с ванильным сахаром", "price": 270, "sizes": true, "addons": true }
+        { "id": "espresso", "name": "Эспрессо (x2)", "addons": true, "milk": false,
+          "sizes": [ { "id": "60", "name": "60 мл", "price": 210 } ] },
+        { "id": "americano", "name": "Американо", "addons": true, "milk": false,
+          "sizes": [ { "id": "250", "name": "250 мл", "price": 210 }, { "id": "350", "name": "350 мл", "price": 210 }, { "id": "450", "name": "450 мл", "price": 260 } ] },
+        { "id": "cappuccino", "name": "Капучино", "addons": true, "milk": true,
+          "sizes": [ { "id": "250", "name": "250 мл", "price": 250 }, { "id": "350", "name": "350 мл", "price": 300 }, { "id": "450", "name": "450 мл", "price": 350 } ] },
+        { "id": "latte", "name": "Латте", "addons": true, "milk": true,
+          "sizes": [ { "id": "350", "name": "350 мл", "price": 300 }, { "id": "450", "name": "450 мл", "price": 350 } ] },
+        { "id": "flatwhite", "name": "Флэт уайт", "addons": true, "milk": true,
+          "sizes": [ { "id": "250", "name": "250 мл", "price": 250 } ] }
       ]
     },
     {
-      "name": "Не кофе",
+      "name": "Матча и какао",
       "items": [
-        { "id": "cocoa", "name": "Какао", "desc": "На молоке, с маршмеллоу", "price": 220, "sizes": true, "addons": true },
-        { "id": "tea", "name": "Чай", "desc": "Чёрный или зелёный, укажите в комментарии", "price": 150, "sizes": true, "addons": false }
+        { "id": "matcha-latte", "name": "Матча латте", "addons": true, "milk": true,
+          "sizes": [ { "id": "350", "name": "350 мл", "price": 300 }, { "id": "450", "name": "450 мл", "price": 350 } ] },
+        { "id": "cocoa", "name": "Какао", "addons": true, "milk": true,
+          "sizes": [ { "id": "250", "name": "250 мл", "price": 230 }, { "id": "350", "name": "350 мл", "price": 260 }, { "id": "450", "name": "450 мл", "price": 290 } ] }
       ]
     },
     {
-      "name": "К кофе",
+      "name": "Кофе на основе сливок",
       "items": [
-        { "id": "croissant", "name": "Круассан", "desc": "Сливочный, свежая выпечка", "price": 160, "sizes": false, "addons": false },
-        { "id": "cheesecake", "name": "Чизкейк", "desc": "Классический, порция", "price": 240, "sizes": false, "addons": false }
+        { "id": "raf", "name": "Раф", "addons": true, "milk": false,
+          "sizes": [ { "id": "350", "name": "350 мл", "price": 330 }, { "id": "450", "name": "450 мл", "price": 380 } ] },
+        { "id": "raf-vanilla", "name": "Раф ваниль", "addons": true, "milk": false,
+          "sizes": [ { "id": "350", "name": "350 мл", "price": 360 }, { "id": "450", "name": "450 мл", "price": 410 } ] },
+        { "id": "raf-nut", "name": "Раф орех", "addons": true, "milk": false,
+          "sizes": [ { "id": "350", "name": "350 мл", "price": 360 }, { "id": "450", "name": "450 мл", "price": 410 } ] },
+        { "id": "raf-coconut", "name": "Раф кокос", "addons": true, "milk": false,
+          "sizes": [ { "id": "350", "name": "350 мл", "price": 360 }, { "id": "450", "name": "450 мл", "price": 410 } ] }
+      ]
+    },
+    {
+      "name": "Спешл",
+      "items": [
+        { "id": "latte-nut", "name": "Латте орех", "addons": true, "milk": true,
+          "sizes": [ { "id": "350", "name": "350 мл", "price": 330 }, { "id": "450", "name": "450 мл", "price": 380 } ] },
+        { "id": "latte-peanut", "name": "Латте арахис", "addons": true, "milk": true,
+          "sizes": [ { "id": "350", "name": "350 мл", "price": 350 }, { "id": "450", "name": "450 мл", "price": 400 } ] },
+        { "id": "latte-maple", "name": "Латте пряный с клёном", "addons": true, "milk": true,
+          "sizes": [ { "id": "350", "name": "350 мл", "price": 330 }, { "id": "450", "name": "450 мл", "price": 380 } ] },
+        { "id": "latte-caramel", "name": "Латте солёная карамель", "addons": true, "milk": true,
+          "sizes": [ { "id": "350", "name": "350 мл", "price": 330 }, { "id": "450", "name": "450 мл", "price": 380 } ] },
+        { "id": "latte-cinnabon", "name": "Латте синнабон", "addons": true, "milk": true,
+          "sizes": [ { "id": "350", "name": "350 мл", "price": 350 }, { "id": "450", "name": "450 мл", "price": 400 } ] },
+        { "id": "raf-popcorn", "name": "Раф карамельный попкорн", "addons": true, "milk": false,
+          "sizes": [ { "id": "350", "name": "350 мл", "price": 400 }, { "id": "450", "name": "450 мл", "price": 450 } ] },
+        { "id": "raf-chocolate", "name": "Раф шоколад", "addons": true, "milk": false,
+          "sizes": [ { "id": "350", "name": "350 мл", "price": 400 }, { "id": "450", "name": "450 мл", "price": 450 } ] }
+      ]
+    },
+    {
+      "name": "Колд",
+      "items": [
+        { "id": "bumble", "name": "Бамбл", "addons": true, "milk": false,
+          "sizes": [ { "id": "350", "name": "350 мл", "price": 320 } ] },
+        { "id": "espresso-tonic", "name": "Эспрессо-тоник", "addons": true, "milk": false,
+          "sizes": [ { "id": "350", "name": "350 мл", "price": 270 } ] },
+        { "id": "ice-americano", "name": "Айс американо", "addons": true, "milk": false,
+          "sizes": [ { "id": "350", "name": "350 мл", "price": 210 } ] },
+        { "id": "ice-latte", "name": "Айс латте", "addons": true, "milk": true,
+          "sizes": [ { "id": "350", "name": "350 мл", "price": 300 } ] },
+        { "id": "ice-matcha", "name": "Айс матча", "addons": true, "milk": true,
+          "sizes": [ { "id": "350", "name": "350 мл", "price": 300 } ] }
       ]
     }
   ]
