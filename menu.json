@@ -1,0 +1,42 @@
+{
+  "shop": "Кофе с собой",
+  "currency": "₽",
+  "sizes": [
+    { "id": "s", "name": "250 мл", "extra": 0 },
+    { "id": "m", "name": "350 мл", "extra": 40 },
+    { "id": "l", "name": "450 мл", "extra": 80 }
+  ],
+  "addons": [
+    { "id": "syrup", "name": "Сироп", "price": 40 },
+    { "id": "altmilk", "name": "Растительное молоко", "price": 70 },
+    { "id": "shot", "name": "Доп. шот эспрессо", "price": 60 }
+  ],
+  "pickup": [0, 10, 15, 20, 30],
+  "categories": [
+    {
+      "name": "Кофе",
+      "items": [
+        { "id": "espresso", "name": "Эспрессо", "desc": "Классический шот, 40 мл", "price": 150, "sizes": false, "addons": false },
+        { "id": "americano", "name": "Американо", "desc": "Эспрессо и горячая вода", "price": 180, "sizes": true, "addons": true },
+        { "id": "cappuccino", "name": "Капучино", "desc": "Эспрессо, молоко, плотная пенка", "price": 220, "sizes": true, "addons": true },
+        { "id": "latte", "name": "Латте", "desc": "Мягкий, много молока", "price": 230, "sizes": true, "addons": true },
+        { "id": "flatwhite", "name": "Флэт уайт", "desc": "Двойной эспрессо и молоко", "price": 250, "sizes": false, "addons": true },
+        { "id": "raf", "name": "Раф", "desc": "Сливочный, с ванильным сахаром", "price": 270, "sizes": true, "addons": true }
+      ]
+    },
+    {
+      "name": "Не кофе",
+      "items": [
+        { "id": "cocoa", "name": "Какао", "desc": "На молоке, с маршмеллоу", "price": 220, "sizes": true, "addons": true },
+        { "id": "tea", "name": "Чай", "desc": "Чёрный или зелёный, укажите в комментарии", "price": 150, "sizes": true, "addons": false }
+      ]
+    },
+    {
+      "name": "К кофе",
+      "items": [
+        { "id": "croissant", "name": "Круассан", "desc": "Сливочный, свежая выпечка", "price": 160, "sizes": false, "addons": false },
+        { "id": "cheesecake", "name": "Чизкейк", "desc": "Классический, порция", "price": 240, "sizes": false, "addons": false }
+      ]
+    }
+  ]
+}
