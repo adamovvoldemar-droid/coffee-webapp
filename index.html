@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Кофе с собой</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --bg: var(--tg-theme-bg-color, #ffffff);
+    --bg2: var(--tg-theme-secondary-bg-color, #f3f1ee);
+    --text: var(--tg-theme-text-color, #1f1a17);
+    --hint: var(--tg-theme-hint-color, #8a8580);
+    --accent: var(--tg-theme-button-color, #7a4a2b);
+    --accent-text: var(--tg-theme-button-text-color, #ffffff);
+    --danger: var(--tg-theme-destructive-text-color, #c0392b);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; padding: 0 0 96px; background: var(--bg2); color: var(--text);
+    font: 16px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  header { padding: 18px 16px 6px; }
+  header h1 { margin: 0; font-size: 24px; }
+  header p { margin: 4px 0 0; color: var(--hint); font-size: 14px; }
+  h2 { margin: 18px 16px 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--hint); }
+  .card { background: var(--bg); margin: 0 12px; border-radius: 14px; overflow: hidden; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+  .row + .row { border-top: 1px solid var(--bg2); }
+  .row .info { flex: 1; min-width: 0; }
+  .row .name { font-weight: 600; }
+  .row .desc { color: var(--hint); font-size: 13px; margin-top: 2px; }
+  .row .price { font-size: 14px; margin-top: 4px; }
+  button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+  .add {
+    flex: none; width: 38px; height: 38px; border-radius: 50%;
+    background: var(--accent); color: var(--accent-text); font-size: 24px; line-height: 1;
+  }
+  .stepper { flex: none; display: flex; align-items: center; gap: 4px; }
+  .stepper button { width: 32px; height: 32px; border-radius: 50%; background: var(--bg2); font-size: 20px; line-height: 1; }
+  .stepper span { min-width: 22px; text-align: center; font-weight: 600; }
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: var(--bg2); }
+  .main-btn {
+    width: 100%; padding: 15px; border-radius: 14px; font-weight: 600; font-size: 16px;
+    background: var(--accent); color: var(--accent-text);
+  }
+  .main-btn:disabled { opacity: .45; }
+  .link { color: var(--accent); padding: 14px 16px 0; font-size: 15px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px; }
+  .chip { padding: 9px 14px; border-radius: 20px; background: var(--bg2); font-size: 14px; }
+  .chip.on { background: var(--accent); color: var(--accent-text); }
+  .field { padding: 10px 14px; }
+  .field + .field { border-top: 1px solid var(--bg2); }
+  .field label { display: block; font-size: 13px; color: var(--hint); margin-bottom: 4px; }
+  .field input, .field textarea {
+    width: 100%; border: 0; outline: 0; background: transparent; color: var(--text);
+    font: inherit; padding: 2px 0; resize: none;
+  }
+  .total { display: flex; justify-content: space-between; padding: 14px; font-weight: 700; font-size: 17px; }
+  .note { color: var(--hint); font-size: 13px; margin: 10px 16px 0; }
+  .empty { text-align: center; color: var(--hint); padding: 40px 16px; }
+  /* Нижняя панель выбора объёма и добавок */
+  .shade { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: flex-end; z-index: 10; }
+  .shade.open { display: flex; }
+  .sheet { width: 100%; background: var(--bg2); border-radius: 18px 18px 0 0; padding: 6px 0 calc(12px + env(safe-area-inset-bottom)); max-height: 90vh; overflow: auto; }
+  .sheet h3 { margin: 14px 16px 2px; font-size: 20px; }
+  .sheet .desc { margin: 0 16px; color: var(--hint); font-size: 14px; }
+  .sheet .main-btn { width: calc(100% - 24px); margin: 16px 12px 0; }
+  .check { display: flex; align-items: center; gap: 12px; padding: 12px 14px; width: 100%; text-align: left; }
+  .check + .check { border-top: 1px solid var(--bg2); }
+  .check .box { flex: none; width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--hint); }
+  .check.on .box { background: var(--accent); border-color: var(--accent); box-shadow: inset 0 0 0 3px var(--bg); }
+  .check .grow { flex: 1; }
+  .check .plus { color: var(--hint); font-size: 14px; }
+  pre.demo { margin: 12px; padding: 12px; background: var(--bg); border-radius: 12px; font-size: 12px; white-space: pre-wrap; word-break: break-word; }
+</style>
+</head>
+<body>
+<div id="app"><p class="empty">Загружаем меню…</p></div>
+<div class="bar"><button class="main-btn" id="mainBtn" disabled>Корзина пуста</button></div>
+<div class="shade" id="shade"><div class="sheet" id="sheet"></div></div>
+
+<script>
+const tg = window.Telegram && window.Telegram.WebApp;
+const inTelegram = !!(tg && tg.initData);
+if (tg) { tg.ready(); tg.expand(); }
+
+let menu = null;
+let cart = [];            // [{id, size, addons: [], qty}]
+let screen = 'menu';      // 'menu' | 'cart'
+let pickup = 0;
+let draft = null;         // позиция, которую сейчас настраивают в нижней панели
+const form = { name: '', comment: '' };
+
+const app = document.getElementById('app');
+const mainBtn = document.getElementById('mainBtn');
+const shade = document.getElementById('shade');
+const sheet = document.getElementById('sheet');
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = n => n + ' ' + menu.currency;
+const findItem = id => menu.categories.flatMap(c => c.items).find(i => i.id === id);
+const findSize = id => menu.sizes.find(s => s.id === id);
+const findAddon = id => menu.addons.find(a => a.id === id);
+const haptic = () => { try { tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred('light'); } catch (e) {} };
+
+function unitPrice(line) {
+  const item = findItem(line.id);
+  let p = item.price;
+  if (item.sizes) p += findSize(line.size).extra;
+  if (item.addons) for (const a of line.addons) p += findAddon(a).price;
+  return p;
+}
+function lineTitle(line) {
+  const item = findItem(line.id);
+  const parts = [];
+  if (item.sizes) parts.push(findSize(line.size).name);
+  if (item.addons) for (const a of line.addons) parts.push(findAddon(a).name.toLowerCase());
+  return { name: item.name, details: parts.join(', ') };
+}
+const cartTotal = () => cart.reduce((s, l) => s + unitPrice(l) * l.qty, 0);
+const cartCount = () => cart.reduce((s, l) => s + l.qty, 0);
+const lineKey = l => [l.id, l.size || '', [...l.addons].sort().join('+')].join('|');
+
+function addToCart(line) {
+  const same = cart.find(l => lineKey(l) === lineKey(line));
+  if (same) same.qty = Math.min(20, same.qty + line.qty);
+  else cart.push(line);
+  haptic();
+  render();
+}
+
+/* ---------- Экран меню ---------- */
+function renderMenu() {
+  let h = `<header><h1>${esc(menu.shop)}</h1><p>Закажите заранее и заберите без очереди</p></header>`;
+  for (const cat of menu.categories) {
+    h += `<h2>${esc(cat.name)}</h2><div class="card">`;
+    for (const it of cat.items) {
+      const from = it.sizes ? 'от ' : '';
+      h += `<div class="row"><div class="info">
+              <div class="name">${esc(it.name)}</div>
+              <div class="desc">${esc(it.desc || '')}</div>
+              <div class="price">${from}${money(it.price)}</div>
+            </div><button class="add" data-add="${esc(it.id)}" aria-label="Добавить ${esc(it.name)}">+</button></div>`;
+    }
+    h += `</div>`;
+  }
+  app.innerHTML = h;
+}
+
+/* ---------- Нижняя панель: объём и добавки ---------- */
+function openSheet(id) {
+  const item = findItem(id);
+  if (!item.sizes && !item.addons) {            // настраивать нечего, сразу в корзину
+    addToCart({ id, size: null, addons: [], qty: 1 });
+    return;
+  }
+  draft = { id, size: item.sizes ? menu.sizes[0].id : null, addons: [], qty: 1 };
+  renderSheet();
+  shade.classList.add('open');
+}
+function closeSheet() { shade.classList.remove('open'); draft = null; }
+function renderSheet() {
+  const item = findItem(draft.id);
+  let h = `<h3>${esc(item.name)}</h3><p class="desc">${esc(item.desc || '')}</p>`;
+  if (item.sizes) {
+    h += `<h2>Объём</h2><div class="card"><div class="chips">`;
+    for (const s of menu.sizes) {
+      h += `<button class="chip ${draft.size === s.id ? 'on' : ''}" data-size="${esc(s.id)}">${esc(s.name)}${s.extra ? ' +' + s.extra : ''}</button>`;
+    }
+    h += `</div></div>`;
+  }
+  if (item.addons) {
+    h += `<h2>Добавки</h2><div class="card">`;
+    for (const a of menu.addons) {
+      h += `<button class="check ${draft.addons.includes(a.id) ? 'on' : ''}" data-addon="${esc(a.id)}">
+              <span class="box"></span><span class="grow">${esc(a.name)}</span><span class="plus">+${money(a.price)}</span></button>`;
+    }
+    h += `</div>`;
+  }
+  h += `<button class="main-btn" data-confirm>В корзину · ${money(unitPrice(draft))}</button>`;
+  sheet.innerHTML = h;
+}
+
+/* ---------- Экран корзины ---------- */
+function renderCart() {
+  let h = `<button class="link" data-back>‹ В меню</button>`;
+  if (!cart.length) {
+    app.innerHTML = h + `<p class="empty">В корзине пока пусто</p>`;
+    return;
+  }
+  h += `<h2>Ваш заказ</h2><div class="card">`;
+  cart.forEach((l, i) => {
+    const t = lineTitle(l);
+    h += `<div class="row"><div class="info">
+            <div class="name">${esc(t.name)}</div>
+            ${t.details ? `<div class="desc">${esc(t.details)}</div>` : ''}
+            <div class="price">${money(unitPrice(l) * l.qty)}</div>
+          </div><div class="stepper">
+            <button data-dec="${i}" aria-label="Меньше">−</button><span>${l.qty}</span><button data-inc="${i}" aria-label="Больше">+</button>
+          </div></div>`;
+  });
+  h += `<div class="row total"><span>Итого</span><span>${money(cartTotal())}</span></div></div>`;
+
+  h += `<h2>Когда заберёте</h2><div class="card"><div class="chips">`;
+  for (const m of menu.pickup) {
+    h += `<button class="chip ${pickup === m ? 'on' : ''}" data-pickup="${m}">${m === 0 ? 'Как можно скорее' : 'Через ' + m + ' мин'}</button>`;
+  }
+  h += `</div></div>`;
+
+  h += `<h2>Детали</h2><div class="card">
+          <div class="field"><label for="name">Имя для заказа</label>
+            <input id="name" maxlength="60" placeholder="Как вас назвать" value="${esc(form.name)}"></div>
+          <div class="field"><label for="comment">Комментарий</label>
+            <textarea id="comment" rows="2" maxlength="300" placeholder="Например: без сахара, зелёный чай">${esc(form.comment)}</textarea></div>
+        </div>
+        <p class="note">Оплата при получении.</p><div id="demo"></div>`;
+  app.innerHTML = h;
+}
+
+function render() {
+  if (screen === 'cart') renderCart(); else renderMenu();
+  const n = cartCount();
+  if (screen === 'menu') {
+    mainBtn.disabled = n === 0;
+    mainBtn.textContent = n ? `Корзина (${n}) · ${money(cartTotal())}` : 'Корзина пуста';
+  } else {
+    mainBtn.disabled = n === 0;
+    mainBtn.textContent = n ? `Заказать · ${money(cartTotal())}` : 'Корзина пуста';
+  }
+}
+
+/* ---------- Отправка заказа боту ---------- */
+function submitOrder() {
+  const payload = JSON.stringify({
+    items: cart.map(l => ({ id: l.id, size: l.size, addons: l.addons, qty: l.qty })),
+    pickup, name: form.name.trim(), comment: form.comment.trim(),
+  });
+  // Telegram принимает от виджета не больше 4096 байт
+  if (new TextEncoder().encode(payload).length > 4096) {
+    const msg = 'Заказ слишком большой. Уберите часть позиций или сократите комментарий.';
+    if (inTelegram) tg.showAlert(msg); else alert(msg);
+    return;
+  }
+  if (inTelegram) {
+    tg.sendData(payload);      // бот получит заказ, виджет закроется
+  } else {
+    // Страница открыта в обычном браузере: показываем, что ушло бы боту
+    document.getElementById('demo').innerHTML =
+      `<p class="note">Демо-режим: страница открыта не из Telegram, заказ не отправлен. Боту ушли бы такие данные:</p><pre class="demo">${esc(JSON.stringify(JSON.parse(payload), null, 2))}</pre>`;
+    window.scrollTo(0, document.body.scrollHeight);
+  }
+}
+
+/* ---------- События ---------- */
+app.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  const d = b.dataset;
+  if (d.add !== undefined) openSheet(d.add);
+  else if (d.back !== undefined) { screen = 'menu'; render(); window.scrollTo(0, 0); }
+  else if (d.inc !== undefined) { const l = cart[+d.inc]; if (l.qty < 20) l.qty++; haptic(); render(); }
+  else if (d.dec !== undefined) { const i = +d.dec; if (--cart[i].qty <= 0) cart.splice(i, 1); haptic(); render(); }
+  else if (d.pickup !== undefined) { pickup = +d.pickup; render(); }
+});
+app.addEventListener('input', e => {
+  if (e.target.id === 'name') form.name = e.target.value;
+  if (e.target.id === 'comment') form.comment = e.target.value;
+});
+sheet.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b || !draft) return;
+  const d = b.dataset;
+  if (d.size !== undefined) { draft.size = d.size; renderSheet(); }
+  else if (d.addon !== undefined) {
+    const i = draft.addons.indexOf(d.addon);
+    if (i >= 0) draft.addons.splice(i, 1); else draft.addons.push(d.addon);
+    renderSheet();
+  }
+  else if (d.confirm !== undefined) { const line = draft; closeSheet(); addToCart(line); }
+});
+shade.addEventListener('click', e => { if (e.target === shade) closeSheet(); });
+mainBtn.addEventListener('click', () => {
+  if (!cartCount()) return;
+  if (screen === 'menu') { screen = 'cart'; render(); window.scrollTo(0, 0); }
+  else submitOrder();
+});
+
+/* ---------- Старт ---------- */
+fetch('menu.json', { cache: 'no-store' })
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(m => {
+    menu = m;
+    document.title = m.shop;
+    const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+    if (u && u.first_name) form.name = u.first_name;
+    render();
+  })
+  .catch(() => { app.innerHTML = '<p class="empty">Не удалось загрузить меню. Закройте окно и попробуйте ещё раз.</p>'; });
+</script>
+</body>
+</html>
