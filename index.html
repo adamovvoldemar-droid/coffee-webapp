@@ -100,27 +100,29 @@ const sheet = document.getElementById('sheet');
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money = n => n + ' ' + menu.currency;
 const findItem = id => menu.categories.flatMap(c => c.items).find(i => i.id === id);
-const findSize = id => menu.sizes.find(s => s.id === id);
+const findSize = (item, id) => item.sizes.find(s => s.id === id) || item.sizes[0];
 const findAddon = id => menu.addons.find(a => a.id === id);
+const findMilk = id => menu.milks.find(m => m.id === id);
+const isOtherMilk = (item, line) => item.milk && line.milk && line.milk !== menu.milks[0].id;
 const haptic = () => { try { tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred('light'); } catch (e) {} };
 
 function unitPrice(line) {
   const item = findItem(line.id);
-  let p = item.price;
-  if (item.sizes) p += findSize(line.size).extra;
+  let p = findSize(item, line.size).price;
+  if (isOtherMilk(item, line)) p += findMilk(line.milk).price;
   if (item.addons) for (const a of line.addons) p += findAddon(a).price;
   return p;
 }
 function lineTitle(line) {
   const item = findItem(line.id);
-  const parts = [];
-  if (item.sizes) parts.push(findSize(line.size).name);
-  if (item.addons) for (const a of line.addons) parts.push(findAddon(a).name.toLowerCase());
+  const parts = [findSize(item, line.size).name];
+  if (isOtherMilk(item, line)) parts.push(findMilk(line.milk).name.toLowerCase() + ' молоко');
+  if (item.addons) for (const a of line.addons) parts.push('+ ' + findAddon(a).name.toLowerCase());
   return { name: item.name, details: parts.join(', ') };
 }
 const cartTotal = () => cart.reduce((s, l) => s + unitPrice(l) * l.qty, 0);
 const cartCount = () => cart.reduce((s, l) => s + l.qty, 0);
-const lineKey = l => [l.id, l.size || '', [...l.addons].sort().join('+')].join('|');
+const lineKey = l => [l.id, l.size || '', l.milk || '', [...l.addons].sort().join('+')].join('|');
 
 function addToCart(line) {
   const same = cart.find(l => lineKey(l) === lineKey(line));
@@ -136,11 +138,12 @@ function renderMenu() {
   for (const cat of menu.categories) {
     h += `<h2>${esc(cat.name)}</h2><div class="card">`;
     for (const it of cat.items) {
-      const from = it.sizes ? 'от ' : '';
+      const min = Math.min(...it.sizes.map(s => s.price));
+      const from = it.sizes.some(s => s.price !== min) ? 'от ' : '';
       h += `<div class="row"><div class="info">
               <div class="name">${esc(it.name)}</div>
-              <div class="desc">${esc(it.desc || '')}</div>
-              <div class="price">${from}${money(it.price)}</div>
+              <div class="desc">${esc(it.sizes.map(s => s.name).join(' / '))}</div>
+              <div class="price">${from}${money(min)}</div>
             </div><button class="add" data-add="${esc(it.id)}" aria-label="Добавить ${esc(it.name)}">+</button></div>`;
     }
     h += `</div>`;
@@ -151,22 +154,30 @@ function renderMenu() {
 /* ---------- Нижняя панель: объём и добавки ---------- */
 function openSheet(id) {
   const item = findItem(id);
-  if (!item.sizes && !item.addons) {            // настраивать нечего, сразу в корзину
-    addToCart({ id, size: null, addons: [], qty: 1 });
+  const line = { id, size: item.sizes[0].id, milk: item.milk ? menu.milks[0].id : null, addons: [], qty: 1 };
+  if (item.sizes.length === 1 && !item.addons && !item.milk) {   // настраивать нечего, сразу в корзину
+    addToCart(line);
     return;
   }
-  draft = { id, size: item.sizes ? menu.sizes[0].id : null, addons: [], qty: 1 };
+  draft = line;
   renderSheet();
   shade.classList.add('open');
 }
 function closeSheet() { shade.classList.remove('open'); draft = null; }
 function renderSheet() {
   const item = findItem(draft.id);
-  let h = `<h3>${esc(item.name)}</h3><p class="desc">${esc(item.desc || '')}</p>`;
-  if (item.sizes) {
+  let h = `<h3>${esc(item.name)}</h3><p class="desc">${esc(item.sizes.length === 1 ? item.sizes[0].name : '')}</p>`;
+  if (item.sizes.length > 1) {
     h += `<h2>Объём</h2><div class="card"><div class="chips">`;
-    for (const s of menu.sizes) {
-      h += `<button class="chip ${draft.size === s.id ? 'on' : ''}" data-size="${esc(s.id)}">${esc(s.name)}${s.extra ? ' +' + s.extra : ''}</button>`;
+    for (const s of item.sizes) {
+      h += `<button class="chip ${draft.size === s.id ? 'on' : ''}" data-size="${esc(s.id)}">${esc(s.name)} · ${money(s.price)}</button>`;
+    }
+    h += `</div></div>`;
+  }
+  if (item.milk) {
+    h += `<h2>Молоко</h2><div class="card"><div class="chips">`;
+    for (const m of menu.milks) {
+      h += `<button class="chip ${draft.milk === m.id ? 'on' : ''}" data-milk="${esc(m.id)}">${esc(m.name)}${m.price ? ' +' + m.price : ''}</button>`;
     }
     h += `</div></div>`;
   }
@@ -174,7 +185,7 @@ function renderSheet() {
     h += `<h2>Добавки</h2><div class="card">`;
     for (const a of menu.addons) {
       h += `<button class="check ${draft.addons.includes(a.id) ? 'on' : ''}" data-addon="${esc(a.id)}">
-              <span class="box"></span><span class="grow">${esc(a.name)}</span><span class="plus">+${money(a.price)}</span></button>`;
+              <span class="box"></span><span class="grow">${esc(a.name)}${a.note ? ' · ' + esc(a.note) : ''}</span><span class="plus">${a.price ? '+' + money(a.price) : 'бесплатно'}</span></button>`;
     }
     h += `</div>`;
   }
@@ -233,7 +244,7 @@ function render() {
 /* ---------- Отправка заказа боту ---------- */
 function submitOrder() {
   const payload = JSON.stringify({
-    items: cart.map(l => ({ id: l.id, size: l.size, addons: l.addons, qty: l.qty })),
+    items: cart.map(l => ({ id: l.id, size: l.size, milk: l.milk, addons: l.addons, qty: l.qty })),
     pickup, name: form.name.trim(), comment: form.comment.trim(),
   });
   // Telegram принимает от виджета не больше 4096 байт
@@ -272,6 +283,7 @@ sheet.addEventListener('click', e => {
   if (!b || !draft) return;
   const d = b.dataset;
   if (d.size !== undefined) { draft.size = d.size; renderSheet(); }
+  else if (d.milk !== undefined) { draft.milk = d.milk; renderSheet(); }
   else if (d.addon !== undefined) {
     const i = draft.addons.indexOf(d.addon);
     if (i >= 0) draft.addons.splice(i, 1); else draft.addons.push(d.addon);
